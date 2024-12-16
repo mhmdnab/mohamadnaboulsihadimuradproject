@@ -2,7 +2,6 @@
 session_start();
 require 'db.php';
 
-// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
@@ -10,11 +9,10 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Handle book purchase
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_id'])) {
     $book_id = intval($_POST['book_id']);
 
-    // Check if the book exists and is in stock
+    
     $query = "SELECT * FROM books WHERE id = ? AND quantity > 0";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('i', $book_id);
@@ -24,16 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_id'])) {
     if ($result->num_rows > 0) {
         $book = $result->fetch_assoc();
 
-        // Deduct stock and record purchase
+       
         $conn->begin_transaction();
         try {
-            // Deduct stock
+            
             $update_stock = "UPDATE books SET quantity = quantity - 1 WHERE id = ?";
             $stmt = $conn->prepare($update_stock);
             $stmt->bind_param('i', $book_id);
             $stmt->execute();
 
-            // Record purchase
+            
             $insert_purchase = "INSERT INTO purchased_books (user_id, book_id, purchase_date) VALUES (?, ?, NOW())";
             $stmt = $conn->prepare($insert_purchase);
             $stmt->bind_param('ii', $user_id, $book_id);
@@ -50,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['book_id'])) {
     }
 }
 
-// Fetch available books
+
 $query = "SELECT * FROM books WHERE quantity > 0";
 $result = $conn->query($query);
 ?>
